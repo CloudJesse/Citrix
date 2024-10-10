@@ -1,6 +1,8 @@
 # Citrix Workspace App Cache Cleaner
 # Script v 1.0 created by Jesse Boehm
 
+#Make sure you Reset CWA from: Advanced Preferences > Reset Citrix Workspace App
+
 # Define the process names for Citrix Workspace
 echo "Attempting to kill Citrix Workspace, Receiver, and Redirector applications..."
 $processNames = @("SelfService", "Receiver", "redirector")
