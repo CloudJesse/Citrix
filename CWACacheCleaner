@@ -1,0 +1,40 @@
+# Citrix Workspace App Cache Cleaner
+# Script v 1.0 created by Jesse Boehm
+
+# Define the process names for Citrix Workspace
+echo "Attempting to kill Citrix Workspace, Receiver, and Redirector applications..."
+$processNames = @("SelfService", "Receiver", "redirector")
+
+# Get the processes by name and kill them
+foreach ($processName in $processNames) {
+    $citrixProcess = Get-Process -Name $processName -ErrorAction SilentlyContinue
+
+    # Check if the process is running
+    if ($citrixProcess) {
+        # Kill the process
+        Stop-Process -Id $citrixProcess.Id -Force
+        Write-Output "Citrix process ($processName) has been terminated successfully."
+    } else {
+        Write-Output "Citrix process ($processName) is not running."
+    }
+}
+
+# Define the paths to delete files from and delete the folders
+$paths = @(
+    "C:\users\$env:username\appdata\local\citrix",
+    "C:\users\$env:username\appdata\roaming\citrix",
+    "C:\users\$env:username\appdata\roaming\icaclient"
+)
+
+# Delete all files and folders in the specified paths
+foreach ($path in $paths) {
+    if (Test-Path -Path $path) {
+        Remove-Item -Path "$path\*" -Recurse -Force -ErrorAction SilentlyContinue
+        Write-Output "All files in path '$path' have been deleted."
+        # Delete the folder itself
+        Remove-Item -Path $path -Recurse -Force -ErrorAction SilentlyContinue
+        Write-Output "Folder '$path' has been deleted."
+    } else {
+        Write-Output "Path '$path' does not exist."
+    }
+}
