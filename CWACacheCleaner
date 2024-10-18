@@ -1,43 +1,114 @@
-# Citrix Workspace App Cache Cleaner
-# Script v 1.0 created by Jesse Boehm
-# GitHub Repository: https://github.com/CloudJesse/Citrix/blob/main/CWACacheCleaner
+<#
+    Script Name: Citrix CWA Cleanup Reset Script
+    Author: Jesse Boehm
+    Version: 2.5
+    Description: 
+        This script kills specified Citrix Workspace processes, deletes files in specified Citrix directories, 
+        and removes the directories themselves. It includes error and warning handling with messages 
+        displayed in red text for errors, light blue text for warnings, and green text for informational messages.
+        The messages are stored and grouped by type (Info, Error, Warning) and displayed at the end.
+#>
 
-# Make sure you Reset CWA from: Advanced Preferences > Reset Citrix Workspace App
+# Arrays to store messages
+$infoMessages = @()
+$errorMessages = @()
+$warningMessages = @()
 
-# Define the process names for Citrix Workspace
-echo "Attempting to kill Citrix Workspace, Receiver, and Redirector applications..."
-$processNames = @("SelfService", "Receiver", "redirector")
+# Function to log errors and store them for later output
+function Log-Error {
+    param (
+        [string]$Message
+    )
+    $errorMessages += "[ERROR] $Message"
+    Write-Host "[ERROR] $Message" -ForegroundColor Red
+}
 
-# Get the processes by name and kill them
-foreach ($processName in $processNames) {
-    $citrixProcess = Get-Process -Name $processName -ErrorAction SilentlyContinue
+# Function to log warnings and store them for later output
+function Log-Warning {
+    param (
+        [string]$Message
+    )
+    $warningMessages += "[WARNING] $Message"
+    Write-Host "[WARNING] $Message" -ForegroundColor Cyan
+}
 
-    # Check if the process is running
-    if ($citrixProcess) {
-        # Kill the process
-        Stop-Process -Id $citrixProcess.Id -Force
-        Write-Output "Citrix process ($processName) has been terminated successfully."
-    } else {
-        Write-Output "Citrix process ($processName) is not running."
+# Function to log informational messages and store them for later output
+function Log-Info {
+    param (
+        [string]$Message
+    )
+    $infoMessages += "[INFO] $Message"
+    Write-Host "[INFO] $Message" -ForegroundColor Green
+}
+
+# Define the Citrix processes to kill
+$citrixProcesses = @("SelfService", "Receiver", "redirector")
+
+# Kill the processes
+foreach ($process in $citrixProcesses) {
+    try {
+        $proc = Get-Process -Name $process -ErrorAction SilentlyContinue
+        if ($proc) {
+            $proc | Stop-Process -Force -ErrorAction Stop
+            Log-Info "Process '$process' terminated successfully."
+        } else {
+            Log-Warning "Process '$process' not found."
+        }
+    } catch {
+        Log-Error "Failed to terminate process '$process'."
     }
 }
 
-# Define the paths to delete files from and delete the folders
-$paths = @(
-    "C:\users\$env:username\appdata\local\citrix",
-    "C:\users\$env:username\appdata\roaming\citrix",
-    "C:\users\$env:username\appdata\roaming\icaclient"
+# Define the folder paths
+$citrixPaths = @(
+    "$env:LOCALAPPDATA\citrix",
+    "$env:APPDATA\citrix",
+    "$env:APPDATA\icaclient"
 )
 
-# Delete all files and folders in the specified paths
-foreach ($path in $paths) {
-    if (Test-Path -Path $path) {
-        Remove-Item -Path "$path\*" -Recurse -Force -ErrorAction SilentlyContinue
-        Write-Output "All files in path '$path' have been deleted."
-        # Delete the folder itself
-        Remove-Item -Path $path -Recurse -Force -ErrorAction SilentlyContinue
-        Write-Output "Folder '$path' has been deleted."
-    } else {
-        Write-Output "Path '$path' does not exist."
+# Delete files and folders
+foreach ($path in $citrixPaths) {
+    try {
+        if (Test-Path $path) {
+            Log-Info "Folder '$path' exists. Proceeding with file and folder deletion."
+
+            # Remove all files in the directory
+            Get-ChildItem -Path $path -Recurse -Force -ErrorAction Stop | Remove-Item -Force -Recurse -ErrorAction Stop
+            Log-Info "Files in '$path' deleted successfully."
+
+            # Remove the folder itself
+            Remove-Item -Path $path -Recurse -Force -ErrorAction Stop
+            Log-Info "Folder '$path' deleted successfully."
+        } else {
+            Log-Warning "Folder '$path' does not exist."
+        }
+    } catch {
+        Log-Error "Failed to delete folder or files in '$path'."
+    }
+}
+
+# Check if there are any messages to display
+
+# Output Info messages (Green text)
+if ($infoMessages.Count -gt 0) {
+    Write-Host "`n--- Informational Messages ---" -ForegroundColor Green
+    foreach ($message in $infoMessages) {
+        Write-Host $message -ForegroundColor Green
+    }
+}
+
+# Output Error messages (Red text)
+if ($errorMessages.Count -gt 0) {
+    Write-Host "`n--- Error Messages ---" -ForegroundColor Red
+    foreach ($message in $errorMessages) {
+        Write-Host $message -ForegroundColor Red
+    }
+}
+
+# Output Warning messages (Light blue text)
+if ($warningMessages.Count -gt 0) {
+    Write-Host "`n--- Warning Messages ---" -ForegroundColor Cyan
+    foreach ($message in $warningMessages) {
+        Write-Host $message -ForegroundColor Cyan
     }
 }
