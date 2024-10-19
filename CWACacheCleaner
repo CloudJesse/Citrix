@@ -1,26 +1,25 @@
 <#
     Script Name: Citrix CWA Cleanup Reset Script
     Author: Jesse Boehm
-    Version: 2.5
+    Version: 3.2
     Description: 
         This script kills specified Citrix Workspace processes, deletes files in specified Citrix directories, 
         and removes the directories themselves. It includes error and warning handling with messages 
-        displayed in red text for errors, light blue text for warnings, and green text for informational messages.
-        The messages are stored and grouped by type (Info, Error, Warning) and displayed at the end.
+        displayed in green text for informational messages, light blue text for warnings, and red text for errors.
+        The messages are stored and grouped by type (Info, Warning, Error) and displayed at the end in that order.
 #>
 
 # Arrays to store messages
-$infoMessages = @()
-$errorMessages = @()
-$warningMessages = @()
+$infoMessages = New-Object System.Collections.Generic.List[System.String]
+$errorMessages = New-Object System.Collections.Generic.List[System.String]
+$warningMessages = New-Object System.Collections.Generic.List[System.String]
 
 # Function to log errors and store them for later output
 function Log-Error {
     param (
         [string]$Message
     )
-    $errorMessages += "[ERROR] $Message"
-    Write-Host "[ERROR] $Message" -ForegroundColor Red
+    $errorMessages.Add("[ERROR] $Message")
 }
 
 # Function to log warnings and store them for later output
@@ -28,8 +27,7 @@ function Log-Warning {
     param (
         [string]$Message
     )
-    $warningMessages += "[WARNING] $Message"
-    Write-Host "[WARNING] $Message" -ForegroundColor Cyan
+    $warningMessages.Add("[WARNING] $Message")
 }
 
 # Function to log informational messages and store them for later output
@@ -37,8 +35,7 @@ function Log-Info {
     param (
         [string]$Message
     )
-    $infoMessages += "[INFO] $Message"
-    Write-Host "[INFO] $Message" -ForegroundColor Green
+    $infoMessages.Add("[INFO] $Message")
 }
 
 # Define the Citrix processes to kill
@@ -87,7 +84,7 @@ foreach ($path in $citrixPaths) {
     }
 }
 
-# Check if there are any messages to display
+# Output all stored messages, grouped by type
 
 # Output Info messages (Green text)
 if ($infoMessages.Count -gt 0) {
@@ -97,18 +94,18 @@ if ($infoMessages.Count -gt 0) {
     }
 }
 
-# Output Error messages (Red text)
-if ($errorMessages.Count -gt 0) {
-    Write-Host "`n--- Error Messages ---" -ForegroundColor Red
-    foreach ($message in $errorMessages) {
-        Write-Host $message -ForegroundColor Red
-    }
-}
-
 # Output Warning messages (Light blue text)
 if ($warningMessages.Count -gt 0) {
     Write-Host "`n--- Warning Messages ---" -ForegroundColor Cyan
     foreach ($message in $warningMessages) {
         Write-Host $message -ForegroundColor Cyan
+    }
+}
+
+# Output Error messages (Red text)
+if ($errorMessages.Count -gt 0) {
+    Write-Host "`n--- Error Messages ---" -ForegroundColor Red
+    foreach ($message in $errorMessages) {
+        Write-Host $message -ForegroundColor Red
     }
 }
