@@ -4,4 +4,4 @@
 - 💞️ I’m looking to collaborate on technology projects, podcast interviews, and discussions around cloud and end-user computing innovations.
 - 📫 How to reach me: jesse@jesseboehm.com. Check out my podcast at TheSAEP.com
 - 😄 Pronouns: He/Him
--  Fun fact: I once traveled across America, living in several cities, inspired by the road adventures of Jack Kerouac!
+- ⚡ Fun fact: I once traveled across America, living in several cities, inspired by the road adventures of Jack Kerouac!
